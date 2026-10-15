@@ -1,0 +1,48 @@
+name: Update upstream skill creators
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every Monday at 07:23 UTC. Remove this block for manual-only updates.
+    - cron: '23 7 * * 1'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Sync the two selected skill directories
+        run: python repo/scripts/sync_skill_creators.py
+
+      - name: Open or update a reviewable PR
+        uses: peter-evans/create-pull-request@v8
+        with:
+          path: repo
+          branch: automation/update-skill-creators
+          delete-branch: true
+          commit-message: 'chore(skills): sync skill-creators from upstream'
+          title: 'chore(skills): update Anthropic and OpenAI skill creators'
+          body: |
+            Updates only these two directories from their upstream sources:
+            - `anthropics/skills`: `skills/skill-creator`
+            - `openai/skills`: `skills/.system/skill-creator`
+
+            **Please review before merging**, especially updates to executable scripts.
+            The sync deterministically renames only the `name` in each SKILL.md
+            and inserts a notice; .upstream.json records each upstream Git tree.
+          add-paths: |
+            skills/skill-creator-anthropic
+            skills/skill-creator-openai
