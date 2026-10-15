@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/anthropics/skills.git",
+  "path": "skills/skill-creator",
+  "git_tree_sha": "3cf9a8db32597ba3e24b584a3d696f4e11c7d7b6",
+  "local_change": "SKILL.md frontmatter name renamed for coexistence"
+}

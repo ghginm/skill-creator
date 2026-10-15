@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/openai/skills.git",
+  "path": "skills/.system/skill-creator",
+  "git_tree_sha": "8bfb6b8774d223eea3e788cfdfa1e4209e5e2ae9",
+  "local_change": "SKILL.md frontmatter name renamed for coexistence"
+}
