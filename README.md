@@ -4,6 +4,28 @@ A repository of two upstream skill-creation toolkits, kept under distinct names 
 
 **Agents: start with [AGENTS.md](AGENTS.md), then follow the [skill creation guide](docs/skill-creation.md).**
 
+## Create a skill with an AI agent
+
+In GitHub Copilot Agent Mode in VS Code, Devin, or another coding agent with Git, shell access, and Python 3.10+, paste this prompt and replace the contract. The output path is optional:
+
+```text
+Create a production-ready skill from this contract:
+
+[CONTRACT]
+
+Use https://github.com/ghginm/skill-creator as your authoring toolbox.
+Clone or access its contents, read AGENTS.md, and follow docs/skill-creation.md.
+Choose the appropriate OpenAI/Anthropic creator tools, implement the skill,
+validate it, and test realistic scenarios, including an edge/failure case.
+Save the completed skill to [OUTPUT PATH, or use the documented safe default].
+Do not overwrite, install, or publish skills without authorization.
+Report the finished directory, its structure, verification evidence, and limitations.
+```
+
+A GitHub URL alone does **not** load repository instructions: the agent must fetch or access the files. The selected model provider does not determine which creator it can use; selecting Claude in Copilot does not provide Claude CLI. Python/PyYAML are normal tooling; provider-specific model evaluations are optional.
+
+The finished skill can belong to another project. Your destination takes priority; otherwise the agent uses an `authored-skills/` sibling of this checkout and reports the exact path. Nothing is installed automatically.
+
 ## Choose a toolkit
 
 | Need | Start here |
@@ -14,7 +36,7 @@ A repository of two upstream skill-creation toolkits, kept under distinct names 
 
 Both are instructions plus executable helpers. Read the selected `SKILL.md` before using its tools. Provider-specific commands are not automatically portable to other agents.
 
-## Quick start
+## Manual / CLI workflow
 
 Run from this repository's root in a POSIX shell with Python 3.10+:
 
@@ -49,7 +71,7 @@ Then exercise the skill on real prompts. The [full guide](docs/skill-creation.md
 
 ```text
 AGENTS.md                              Agent entry point and repository boundaries
-README.md                              Overview and quick start
+README.md                              Overview, agent prompt, and manual CLI workflow
 docs/skill-creation.md                  End-to-end authoring workflow
 scripts/sync_skill_creators.py          Destructive refresh of the two vendored toolkits
 .github/workflows/update-skill-creators.yml

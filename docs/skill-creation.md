@@ -13,14 +13,16 @@
 
 ## 1. Choose a workflow
 
-Use the OpenAI creator for scaffolding and Codex metadata. Use the Anthropic creator for its draft → test → review → improve process. They can be combined: there is no requirement to author with the provider whose agent will eventually consume the skill.
+Start from the user's contract: it defines required behavior, inputs, outputs, triggers, constraints, and success criteria. Templates are starting points, not replacement requirements. Read [AGENTS.md](../AGENTS.md) and [README.md](../README.md) if you have not already; a repository URL alone does not load their contents.
+
+Prefer the OpenAI creator for scaffolding and Codex metadata, and the Anthropic creator for its draft → test → review → improve process. Use either or combine them as needed, regardless of your agent's model provider. Do not create resources or evaluation infrastructure the task does not need.
 
 Read the selected creator's `SKILL.md` first:
 
 - [OpenAI creator](../skills/skill-creator-openai/SKILL.md)
 - [Anthropic creator](../skills/skill-creator-anthropic/SKILL.md)
 
-Capture the task, expected inputs and outputs, required tools, realistic trigger phrases, near-miss requests that should not trigger, and success criteria. Use information already provided; ask only for missing decisions that affect the result. Confirm the target agent/harness and whether installation or packaging is wanted.
+Capture required tools, realistic trigger phrases, and near-miss requests that should not trigger. Use information already provided; ask only for missing decisions that affect the result. Identify any target-specific requirements from the contract; absent a request, deliver a portable directory without installation or packaging.
 
 For an existing skill, work on a writable copy, preserve its identifier, and snapshot the original outside the skill before editing. Skip initialization. Use the original as the baseline when evaluating an improvement.
 
@@ -41,13 +43,13 @@ export SKILL_NAME="example-skill"
 export SKILL_DIR="$SKILL_OUTPUT_ROOT/$SKILL_NAME"
 ```
 
-If the user supplies a different output location, set `SKILL_OUTPUT_ROOT` to that parent directory instead. The sibling directory is a safe default, not a required installation location. A `.venv` created here is local-only; do not stage it.
+The user's destination takes priority and may be in another repository/project. If it names the finished skill directory, set `SKILL_OUTPUT_ROOT` to its parent and `SKILL_NAME` to its basename; if it names an output parent, create the named skill beneath it. Recompute `SKILL_DIR` after changing either variable. Without a destination, use the sibling directory above and report the exact resulting path. It is an authoring location, not an installation location. Do not overwrite any existing skill without explicit authorization; for an update, use a separate writable copy. A `.venv` created here is local-only; do not stage it.
 
 Do not create output inside either vendored creator. Upstream sync replaces those directories. Setup, initialization, validation, aggregation, review generation, and packaging do **not** require running sync.
 
 ## 3. Initialize a new skill
 
-After reading the OpenAI creator, use its initializer even if you intend to evaluate with the Anthropic workflow:
+For the recommended scaffolding path, read the OpenAI creator and run its initializer; this also works when evaluating with the Anthropic workflow. An Anthropic-only drafting workflow can create `SKILL.md` directly and continue at section 4; it still requires validation and behavioral tests.
 
 ```bash
 python "$OPENAI_CREATOR/scripts/init_skill.py" "$SKILL_NAME" \
@@ -111,7 +113,9 @@ The short description must be 25–64 characters. This file is product-specific 
 
 ## 5. Validate structure and resources
 
-Run both validators for a skill intended to work with both toolkits:
+### Structural and frontmatter validation
+
+Run the applicable bundled Python validator; run both for a skill intended to work with both toolkits:
 
 ```bash
 python "$OPENAI_CREATOR/scripts/quick_validate.py" "$SKILL_DIR"
@@ -122,7 +126,9 @@ These check basic frontmatter shape, required fields, name syntax/length, and de
 
 The checked-in validators disagree about `compatibility`: Anthropic accepts it; OpenAI rejects it. For the shared path, use only `name` and `description` unless extra fields are required and deliberately checked against the target. Do not edit the vendored validator to make your skill pass. A target-specific field is a portability decision to report, not a reason to silently remove required information.
 
-Before calling the skill ready:
+### Resource and script verification
+
+Before calling the skill ready (these checks are separate from frontmatter validation):
 
 - Check that name and description are nonempty strings and the name matches the directory.
 - Remove all TODOs, placeholder resources, and accidental credentials or machine-specific paths.
@@ -132,7 +138,11 @@ Before calling the skill ready:
 
 ## 6. Test behavior and iterate
 
-A metadata pass does not show that an agent can accomplish the task. Start with 2–3 realistic prompts and check the resulting artifacts, not just the agent's explanation. Include an edge/failure case. Record prompts, inputs, outputs, assertions, and limitations.
+A metadata pass does not show that an agent can accomplish the task. Use the available agent/harness (including Copilot or Devin) to follow the skill on 2–3 realistic prompts and check the resulting artifacts, not just the agent's explanation. Include an edge/failure case. Record prompts, inputs, outputs, assertions, and limitations; fix issues and rerun affected cases. If fresh agents are unavailable, follow the instructions yourself and label the result a same-context sanity check, not an independent evaluation.
+
+### Optional: model-based comparisons and benchmarks
+
+For simple skills, the behavioral checks above can be sufficient; do not require paid external model calls, baseline runs, benchmark infrastructure, or Claude CLI. Selecting Claude in Copilot does not supply that CLI. Use the following deeper workflow only when the contract, risk, or evaluation goal warrants it.
 
 For the full Anthropic workflow, read its test/evaluation sections and load resources only as needed:
 
@@ -205,7 +215,13 @@ For iterative description improvement, inspect `python -m scripts.run_loop --hel
 
 ## 7. Package and hand off
 
-If an archive is wanted, run the Anthropic packager as a module, not as a directly executed script:
+If an archive is wanted, choose an archive destination outside `$SKILL_DIR`. If you ran the optional evaluations above, reuse `$WORKSPACE`; otherwise set it to the eval workspace location anyway, so packaging does not depend on that optional section:
+
+```bash
+export WORKSPACE="${WORKSPACE:-$SKILL_OUTPUT_ROOT/$SKILL_NAME-workspace}"
+```
+
+Then run the Anthropic packager as a module, not as a directly executed script:
 
 ```bash
 (
@@ -220,9 +236,9 @@ It validates with the Anthropic validator and writes `$WORKSPACE/dist/$SKILL_NAM
 python -m zipfile -l "$WORKSPACE/dist/$SKILL_NAME.skill"
 ```
 
-Deliver the directory/archive path, the use case and triggering description, the checks actually run, and any missing dependencies or untested harness behavior. Keep the output directory independently usable and retain any licenses needed by copied resources.
+Deliver the finished directory (and archive if requested), its exact path and brief structure explanation, the use case and triggering description, validation results, actual behavioral tests and outcomes, skipped checks, and remaining limitations (including missing dependencies or untested harness behavior). Keep the output directory independently usable and retain any licenses needed by copied resources.
 
-This repository does not implement installation. Use the target harness's documented destination or installer only when requested; do not assume the archive installs itself or overwrite an existing installed skill.
+This repository does not implement installation. Do not silently install or publish the skill. Use the target harness's documented destination or installer only when requested; do not assume the archive installs itself or overwrite any existing skill without authorization.
 
 ## Troubleshooting
 
